@@ -28,8 +28,7 @@ class ParsedURL:
 
 
 
-#URL Parser 
-
+#URL Parser
 
 class URLParser:
     """
@@ -40,10 +39,10 @@ class URLParser:
     DEFAULT_SCHEME = "http"
     
 
-    def parse(self, url: str) -> ParsedURL:
+    def parse(self, url_input: str) -> ParsedURL:
         original_input = url_input.strip()
         
-        narmalized_url = self._nrmalize_url(original_input)
+        normalized_url = self._normalize_url(original_input)
         parsed = urlparse(normalized_url)
 
         scheme = parsed.scheme
@@ -54,7 +53,7 @@ class URLParser:
         base_url = self._build_base_url(scheme, host, port)
 
         query_params = self._parse_query_params(parsed.query)
-        path_segmetns = self._parse_path_segments(path)
+        path_segments = self._parse_path_segments(path)
 
         return ParsedURL(
             original_input=original_input,
@@ -70,7 +69,7 @@ class URLParser:
 
     #INRERNA HELPERS
 
-    def _normalize_url(self, url: str) -> str:
+    def _normalize_url(self, url_input: str) -> str:
         """
         ENsure the URL has a scheme and its perseable.
         Doesnt decode or mutate parameters.
@@ -87,8 +86,9 @@ class URLParser:
     
     def _parse_query_params(self, query:str) -> List[QueryParameter]:
         params = []
-        for name, raw_value in parse_qsl(query, keep_blank_values=True):
+        for name, raw_value in parse_qsl(query, keep_blank_values=True): # Preserve empty values (Critical for injection), it returns tuples of (name, value)
             decoded_value = unquote(raw_value) if raw_value is not None else None
+            
             is_empty = raw_value == ""  or raw_value is None
             is_path_like = self._is_path_like(name, decoded_value)
 
