@@ -14,7 +14,7 @@ class ObfuscatedExtensionStrategy(Strategy):
         self.uploader = uploader
         self.observer = observer
 
-        self.test_caes = [
+        self.test_cases = [
             "probe.jpg",          # baseline allowed
             "probe.php",          # baseline blocked
             "probe.php.jpg",      # double extension
@@ -32,7 +32,7 @@ class ObfuscatedExtensionStrategy(Strategy):
 
         return ( 
             context.capabilities.upload_supported and
-            context.hypotheses.ge("EXTENSION_FILTERING", 0 ) >= 0.4
+            context.hypotheses.get("EXTENSION_FILTERING", 0 ) >= 0.4
         )
     
     def execute(self, context) ->StrategyStatus:
@@ -49,7 +49,7 @@ class ObfuscatedExtensionStrategy(Strategy):
             observation = self.observer.analyze_upload(response, filename)
             context.record(observation)
 
-            if observation.append(filename):
+            if observation.accepted:
                 accepted.append(filename)
             else:
                 rejected.append(filename)
@@ -81,7 +81,10 @@ class ObfuscatedExtensionStrategy(Strategy):
         
         # Everything rejected sadly 
         if not accepted: 
-            return StrategyStatus.FAILED 
+            return StrategyStatus.FAILURE
         
         # Mixed / unclear behavior 
         return StrategyStatus.INCONCLUSIVE
+    
+
+    
