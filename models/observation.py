@@ -1,5 +1,5 @@
 from enum import Enum , auto 
-from dataclass import dataclass 
+from dataclasses import dataclass 
 from typing import List 
 
 
@@ -14,7 +14,11 @@ class ObservationType(Enum):
     NULL_BYTE_REMOVED = auto()
     CODE_EXECUTION_DETECTED = auto()
     ERROR_MESSAGE_DETECTED = auto()
-
+    TECH_STACK_DETECTED = auto()
+    WAF_DETECTED = auto()
+    BASELINE_ESTABLISHED = auto()
+    HYPOTHESIS_CONFIRMED = auto()
+    HYPOTHESIS_REJECTED = auto()
 
 
 

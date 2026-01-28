@@ -1,6 +1,6 @@
-from typing import List 
+from typing import List, Optional 
 from models.attack_state import AttackState
-from models.Observation import Observation, ObservationType
+from models.observation import Observation, ObservationType
 from models.filters import FilterProfile
 from models.capabilities import CapabilityProfile
 
@@ -19,8 +19,11 @@ class AttackContext:
 
         self.observations: List[Observation] = []
         self.strategy_history: List[str] = []
-
-
+        self.hypotheses: Dict[str, Hypothesis] = field(default_factory=dict)
+        self.tech_stack: Optional[TechStack] = None
+        self.waf_profile: Optional[WAFProfile] = None
+        self.baseline_response: Optional[Response] = None
+        self.strategy_results: Dict[str, StrategyStatus] = field(default_factory=dict)
     def add_observation(self, observation: Observation):
         self.observations.append(observation)
         self._update_from_observation(observation)
