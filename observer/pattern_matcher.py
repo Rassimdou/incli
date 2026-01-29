@@ -219,3 +219,120 @@ class PatternMatcher:
                 for pattern in self.execution_indicators["php_execution"]:
                     if re.search(pattern, body, re.IGNORECASE):
                         return (True, f"Execution marker detected: {pattern}", 0.95)
+                    
+
+                #IF response is short and dosnt contain html/source , likely executed
+                if len(body)< 10000 and "<html"not in body.lower() and "<php" not in body:
+                    if body.strip(): # Not empty 
+                        return (True, "non-HTML response with no source code visible")
+                    
+                return(False, "No execution indicators",0.5)
+            
+            def extract_uplaod_path(self, response_text: str , header:Dict[str, str]):
+                """
+                Extract uploaded file path from response
+                
+                Args:
+                    response_text: Response body
+                    headers: Response headers
+                    
+                Returns:
+                    Extracted filename or None
+                """
+                #check location header first 
+                if "Location" in headers: 
+                    location = headers["Location"]
+                    if "/" in location:
+                        #Extract filename from path
+                        parts = location.split("/")
+                        if parts[-1]:
+                            return parts[-1]
+                        
+                # Try patterns in response body
+                for pattern in self.upload_path_patterns:
+                    match = re.search(pattern, response_text, re.IGNORECASE)
+                    if match:
+                        path = match.group(1)
+                        # Extract just the filename
+                        if "/" in path:
+                            return path.split("/")[-1]
+                        return path 
+                    
+                # check for json response 
+                try: 
+                    import json 
+                    data = json.loads(response_text)
+
+                    # Common JSON keys for filenames
+                    for key in ["filename", "file", "path", "url", "location"]:
+                        if key in data:
+                            value = data[key]
+                            if "/" in value:
+                                return value.split("/")[-1]
+                            return value
+                        
+                except:
+                    pass
+
+                return None
+            
+            def analyze_blocking_behavior(self, baseline_response, injected_response):
+                """
+                Compare baseline vs injected to understand blocking behavior
+                
+                Args:
+                    baseline_response: Response from safe upload
+                    injected_response: Response from malicious upload
+                    
+                Returns:
+                    Dict with analysis results
+                """
+
+                analysis = {
+                    "blocked":False,
+                    "block_type":None,
+                    "evidence": [],
+                    "confidence": 0.0
+                }
+
+                #Compare status codes 
+                if baseline_response.status_code == 200 and injected_response.status_code in [403, 406, 500]:
+                    analysis["blocked"] = True
+                    analysis["block_type"] = "status_code_rejection"
+                    analysis["evidence"].append(f"Status changed:{baseline_response.status_code} -> {injected_response.status_code}")
+
+                # Compare response lengths
+                baseline_len = len(baseline_response.text)
+                injected_len = len(injected_response.text)
+
+                if abs(baseline_len - injected_len) > (baseline_len * 0.5):
+                    analysis["evidence"].append(f"Significant length change: {baseline_len} → {injected_len}")
+                    analysis["confidence"] += 0.2
+
+
+                # Check for error meesaages 
+                error_matches = self.match_errors(injected_response.text)
+                if error_matches:
+                    analysis["blocked"] =True
+                    analysis["block_type"] = "error_message"
+                    for error_type, conf in error_matches: 
+                        analysis["evidence"].append(f"Error detected: {error_type}")
+                        analysis["confidence"] += conf *0.2
+
+                # check for WAF
+                waf_matches = self.match_waf(
+                    injected_response.headers,
+                    injected_response.text,
+                    injected_response.status_code
+                )
+                if waf_matches:
+                    analysis["blocked"] = True
+                    analysis["block_type"] = "waf"
+                    waf_name = waf_matches[0][0]
+                    analysis["evidence"].append(f"WAF detected: {waf_name}")
+                    analysis["confidence"] += 0.4
+                
+                # Cap confidence at 1.0
+                analysis["confidence"] = min(1.0, analysis["confidence"])
+                
+                return analysis
