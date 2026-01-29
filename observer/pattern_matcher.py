@@ -76,7 +76,7 @@ class PatternMatcher:
             #check headers 
             max_score += 1
             for header_pattern in waf_data.get("header", []):
-                for header_name , header_value in header.items():
+                for header_name , header_value in headers.items():
                     if re.search(header_pattern,f"{header_name}:{header_value}", re.IGNORECASE):
                          score += 1 
                          signatures_matched.append(f"Header: {header_pattern}")
