@@ -12,8 +12,9 @@ from dataclasses import dataclass, field
 @dataclass
 class FileParser:
     """
-    Parsers files containing URLs (one per line) into ParsedURL objects
+    Parses files containing URLs (one per line) into ParsedURL objects
     """
+    url_parser: URLParser = field(default_factory=URLParser)
 
     def parse_file(self, file_path: str) -> List[ParsedURL]:
         parsed_urls = []

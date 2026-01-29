@@ -15,6 +15,7 @@ from typing import Optional
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from http.fetcher import Fetcher 
-from http.uplaoder import uploader 
+from http.uploader import Uploader 
 from models.attack_context import AttackContext
-from intelligence.director import IntellegenceDirector
+# TODO: Create intelligence module
+# from intelligence.director import IntelligenceDirector

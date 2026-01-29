@@ -13,9 +13,9 @@ from input_parser.url_parser import ParsedURL, QueryParameter
 
 @dataclass 
 class InjectionPoint:
-    localation: str     #'query' or 'path'
+    location: str       #'query' or 'path'
     name: str           #parameter name or path segment
-    originale_value: str 
+    original_value: str 
     confidence: int     #0-100
     reason: List[str]   #usefull for reports
 

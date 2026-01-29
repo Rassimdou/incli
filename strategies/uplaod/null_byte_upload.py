@@ -37,4 +37,12 @@ class NullByteUploadStrategy(Strategy):
         return True # always try this technique for uplaod endpoints
     
     def execute(self, context) -> StrategyStatus:
-        print 
+        """
+        Execute null byte upload bypass strategy.
+        
+        Technique: Upload filename.php%00.jpg
+        Result: Server strips %00.jpg, treats file as .php
+        """
+
+        
+        return StrategyStatus.INCONCLUSIVE

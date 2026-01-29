@@ -33,7 +33,7 @@ class Fingerprinter:
         self.framework_signatures = FRAMEWORK_SIGNATURES
 
 
-    def fimgerprint(self, response, context= None) -> TechStack:
+    def fingerprint(self, response, context= None) -> TechStack:
         """
         Main fingerprinting method
         
@@ -53,7 +53,7 @@ class Fingerprinter:
         body = response.text if hasattr(response, 'text') else str(response)
 
         # 1. Detect web server 
-        server_info =self.detct_server(headers)
+        server_info = self._detect_server(headers)
         if server_info:
             tech_stack.web_server = server_info[0]
             tech_stack.server_version = server_info[1]
@@ -86,7 +86,7 @@ class Fingerprinter:
         tech_stack.raw_headers = dict(headers)
 
         #Calculate overall confidence 
-        tech_stack.confidence = self.calculate_confidence(tech_stack)
+        tech_stack.confidence = self._calculate_confidence(tech_stack)
 
         #Store detection source
         tech_stack.detection_sources = detection_sources
@@ -123,7 +123,7 @@ class Fingerprinter:
             
             return None
         
-    def _detect_lanaguge(self , headers: Dict[str, str], body:str) -> Optional[Tuple[str, Optional[str], str]]:
+    def _detect_language(self , headers: Dict[str, str], body:str) -> Optional[Tuple[str, Optional[str], str]]:
             """
             Detect programming language
         
@@ -239,49 +239,6 @@ class Fingerprinter:
                     return ("Windows", version, "Path/error analysis")
             
             return None
-        
-    def _calculate_confidence(self, tech_stack: TechStack) -> float:
-            """
-            Calculate overall confidence in tech stack detection
-            
-            Args:
-                tech_stack: TechStack object to evaluate
-                
-            Returns:
-                Confidence score 0.0 to 1.0
-            """
-            confidence = 0.0
-            components = 0
-            
-            # Each detected component adds to confidence
-            if tech_stack.web_server:
-                confidence += 0.25
-                components += 1
-                if tech_stack.server_version:
-                    confidence += 0.05
-            
-            if tech_stack.language:
-                confidence += 0.30
-                components += 1
-                if tech_stack.language_version:
-                    confidence += 0.10
-            
-            if tech_stack.framework:
-                confidence += 0.15
-                components += 1
-            
-            if tech_stack.os:
-                confidence += 0.15
-                components += 1
-            
-            # If we detected multiple components, boost confidence
-            if components >= 3:
-                confidence *= 1.1
-            
-            # Cap at 1.0
-            confidence = min(1.0, confidence)
-            
-            return confidence
         
     def _calculate_confidence(self, tech_stack: TechStack) -> float:
             """
