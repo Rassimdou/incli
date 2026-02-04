@@ -107,8 +107,7 @@ class HypothesisEngine:
                     new_hyp = Hypothesis(
                         name=hyp_name,
                         confidence=initial_confidence,
-                        evidence=[f"{obs.type.name}: {', '.join(obs.evidence[:2])}"],
-                        suggested_strategies=[]
+                        evidence=[f"{obs.type.name}: {', '.join(obs.evidence[:2])}"]
                     )
                     context.hypotheses[hyp_name] = new_hyp
                     self.hypotheses_created += 1
@@ -135,8 +134,7 @@ class HypothesisEngine:
             hypotheses[hyp_name] = Hypothesis(
                 name=hyp_name,
                 confidence=adjusted_confidence,
-                evidence=[f"{obs.type.name}: {', '.join(obs.evidence[:2])}"],
-                suggested_strategies=[]
+                evidence=[f"{obs.type.name}: {', '.join(obs.evidence[:2])}"]
             )
         
         return hypotheses
@@ -167,8 +165,7 @@ class HypothesisEngine:
             hypotheses[hyp_name] = Hypothesis(
                 name=hyp_name,
                 confidence=adjusted_confidence,
-                evidence=[f"Tech Stack: {tech_stack.get_summary()}"],
-                suggested_strategies=[]
+                evidence=[f"Tech Stack: {tech_stack.get_summary()}"]
             )
         
         return hypotheses

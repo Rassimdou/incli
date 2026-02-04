@@ -61,28 +61,29 @@ class IntelligenceDirector:
         self.strategies_tried = 0
         
     def _load_strategies(self) -> List:
-        """
-        Load all available strategies
-        
-        Returns:
-            List of Strategy instances
-        """
+        """Load all available strategies dynamically"""
         strategies = []
+        strategy_classes = [
+            ("strategies.upload.null_byte_upload", "NullByteUploadStrategy"),
+            ("strategies.upload.double_extension", "DoubleExtensionStrategy"),
+            ("strategies.upload.mime_type_bypass", "MimeTypeBypassStrategy"),
+            ("strategies.upload.magic_bytes", "MagicBytesStrategy"),
+            ("strategies.upload.htaccess_upload", "HtaccessUploadStrategy"),
+        ]
         
-
-        try:
-            from strategies.upload.null_byte_strategy import NullByteUploadStrategy
-            
-            strategies.append(NullByteUploadStrategy(
-                uploader=self.uploader,
-                fetcher=self.fetcher,
-                observer=self.observer,
-                base_url=self.context.target_url
-            ))
-        except ImportError as e:
-            print(f"[!] Warning: Could not load null_byte_strategy: {e}")
+        for module_path, class_name in strategy_classes:
+            try:
+                module = __import__(module_path, fromlist=[class_name])
+                strategy_class = getattr(module, class_name)
+                strategies.append(strategy_class(
+                    uploader=self.uploader,
+                    fetcher=self.fetcher,
+                    observer=self.observer,
+                    base_url=self.context.target_url
+                ))
+            except (ImportError, AttributeError) as e:
+                print(f"[!] Warning: Could not load {class_name}: {e}")
         
-
         return strategies
     
     def run_intelligent_scan(self) -> ScanResult:
@@ -142,7 +143,7 @@ class IntelligenceDirector:
             for obs in observations:
                 self.context.add_observation(obs)
             
-            print(f"  [✓] Baseline established ({len(observations)} observations)")
+            print(f"  [+] Baseline established ({len(observations)} observations)")
             
             # Update hypotheses
             self.context.hypotheses = self.hypothesis_engine.analyze(self.context)
@@ -215,7 +216,7 @@ class IntelligenceDirector:
             result = self._execute_strategy(next_strategy.strategy)
         
             if result == StrategyStatus.SUCCESS:
-                print(f"\n[✓] VULNERABILITY CONFIRMED!")
+                print(f"\n[+] VULNERABILITY CONFIRMED!")
                 print(f"    Working technique: {next_strategy.strategy.name}")
                 return True
             elif result == StrategyStatus.FAILURE:

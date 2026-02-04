@@ -9,10 +9,10 @@ from typing import Optional
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 
-from http.fetcher import Fetcher
-from http.uploader import Uploader
+from network.fetcher import Fetcher
+from network.uploader import Uploader
 from models.attack_context import AttackContext
-from intelligence.director import IntelligenceDirector
+from intelligence.detector import IntelligenceDirector
 
 
 class LabAuthenticator:
@@ -25,6 +25,9 @@ class LabAuthenticator:
         self.username = username
         self.password = password
         self.session = requests.Session()
+        self.session.headers.update({
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        })
     
     def login(self) -> Optional[str]:
         """
@@ -40,11 +43,14 @@ class LabAuthenticator:
         
         try:
             response = self.session.get(login_url)
+            print(f"[*] GET {login_url} - Status: {response.status_code}")
             csrf_token = self._extract_csrf(response.text)
             
             if not csrf_token:
                 print("[!] Could not extract CSRF token")
                 return None
+            
+            print(f"[*] Extracted CSRF token: {csrf_token}")
             
           
             data = {
@@ -53,15 +59,26 @@ class LabAuthenticator:
                 "password": self.password
             }
             
-            response = self.session.post(login_url, data=data, allow_redirects=False)
+            response = self.session.post(
+                login_url, 
+                data=data, 
+                headers={
+                    "Referer": login_url,
+                    "Origin": self.base_url,
+                    "Content-Type": "application/x-www-form-urlencoded"
+                }, 
+                allow_redirects=False
+            )
             
             if response.status_code == 302:
         
                 session_cookie = self.session.cookies.get('session')
-                print(f"[✓] Authenticated successfully")
+                print(f"[+] Authenticated successfully")
                 return session_cookie
             else:
                 print(f"[!] Authentication failed (HTTP {response.status_code})")
+                if response.text:
+                    print(f"    Response: {response.text[:200]}...")
                 return None
                 
         except Exception as e:
@@ -196,7 +213,7 @@ def main():
 
         director = IntelligenceDirector(context, uploader, fetcher)
         
-        print("[✓] Components initialized")
+        print("[+] Components initialized")
         print()
         
     except Exception as e:
@@ -225,14 +242,14 @@ def main():
     print()
     
     if result.vulnerabilities_found:
-        print("[✓] VULNERABLE!")
+        print("[+] VULNERABLE!")
         print()
         print(f"    Technique: {result.successful_strategy}")
         
         if result.secret_extracted:
             print(f"    Secret: {result.secret_extracted}")
             print()
-            print("    ► Copy the secret above and submit it to solve the lab!")
+            print("    -> Copy the secret above and submit it to solve the lab!")
         
         print()
         print(f"    Statistics:")
@@ -247,7 +264,7 @@ def main():
         sys.exit(0)
     
     else:
-        print("[✗] No vulnerabilities found")
+        print("[-] No vulnerabilities found")
         print()
         print(f"    Statistics:")
         print(f"      - Observations: {result.observations_count}")

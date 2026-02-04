@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import List
 from datetime import datetime
 
@@ -7,37 +7,37 @@ from datetime import datetime
 class Hypothesis:
     name: str 
     confidence: float
-    evidence: List[str]   #Supporting observations
-    contradictions: List[str]   #Conflicting observations
-    suggested_strategies: List[str]  #Recommended next steps
-    last_updated: datetime 
+    evidence: List[str] = field(default_factory=list)   #Supporting observations
+    contradictions: List[str] = field(default_factory=list)   #Conflicting observations
+    suggested_strategies: List[str] = field(default_factory=list)  #Recommended next steps
+    last_updated: datetime = field(default_factory=datetime.utcnow) 
 
     def __post_init__(self):
-        """Validate and normalize values"""
+        
        
         self.confidence = max(0.0, min(1.0, self.confidence))
     
     def add_evidence(self, evidence: str):
-        """Add supporting evidence and boost confidence"""
+        
         if evidence not in self.evidence:
             self.evidence.append(evidence)
             self.confidence = min(1.0, self.confidence + 0.1)
             self.last_updated = datetime.utcnow()
     
     def add_contradiction(self, contradiction: str):
-        """Add contradicting evidence and reduce confidence"""
+        
         if contradiction not in self.contradictions:
             self.contradictions.append(contradiction)
             self.confidence = max(0.0, self.confidence - 0.15)
             self.last_updated = datetime.utcnow()
     
     def adjust_confidence(self, delta: float):
-        """Manually adjust confidence by delta amount"""
+       
         self.confidence = max(0.0, min(1.0, self.confidence + delta))
         self.last_updated = datetime.utcnow()
     
     def is_likely(self, threshold: float = 0.6) -> bool:
-        """Check if hypothesis is likely true (above threshold)"""
+       
         return self.confidence >= threshold
     
     def __str__(self):

@@ -20,7 +20,7 @@ from datetime import datetime
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from models.observation import Observation, ObservationType, confidenceLevel
+from models.observation import Observation, ObservationType, ConfidenceLevel
 from models.tech_stack import TechStack
 from models.waf_profile import WAFProfile
 from observer.fingerprinter import Fingerprinter
@@ -34,9 +34,9 @@ class Observer:
 
         #Track analysis hostory
         self.response_analyzed = 0 
-        self.observation_created = 0
+        self.observations_created = 0
 
-    def analyzed_response(self, response, context=None , payload_info: Dict[str, Any]= None) ->List[Observation]:
+    def analyze_response(self, response, context=None , payload_info: Dict[str, Any]= None) ->List[Observation]:
         observations = []
         payload_info = payload_info or {}
 
